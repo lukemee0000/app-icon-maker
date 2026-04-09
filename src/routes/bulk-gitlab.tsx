@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Send } from "lucide-react";
 
@@ -99,7 +99,9 @@ async function createGitlabProject(
 }
 
 function RouteComponent() {
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem(GITLAB_TOKEN_KEY) ?? "";
+  });
   const [names, setNames] = useState("");
   const [groups, setGroups] = useState<GitlabGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -108,15 +110,9 @@ function RouteComponent() {
   const [isRunning, setIsRunning] = useState(false);
   const abortRef = useRef(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(GITLAB_TOKEN_KEY);
-    if (saved) setToken(saved);
-  }, []);
-
   const fetchGroups = useCallback(async () => {
     if (!token.trim()) return;
 
-    localStorage.setItem(GITLAB_TOKEN_KEY, token.trim());
     setIsFetchingGroups(true);
     try {
       const res = await fetch(
@@ -128,6 +124,7 @@ function RouteComponent() {
         },
       );
       if (res.ok) {
+        localStorage.setItem(GITLAB_TOKEN_KEY, token.trim());
         const data = await res.json();
         setGroups(data);
         if (data.length > 0 && !selectedGroupId) {
@@ -144,9 +141,9 @@ function RouteComponent() {
   const handleSubmit = useCallback(async () => {
     if (!token.trim() || !names.trim()) return;
 
-    localStorage.setItem(GITLAB_TOKEN_KEY, token.trim());
     abortRef.current = false;
     setIsRunning(true);
+    let tokenSaved = false;
 
     const lines = names
       .split("\n")
@@ -218,10 +215,15 @@ function RouteComponent() {
         };
         return next;
       });
+
+      if (result.ok && !tokenSaved) {
+        localStorage.setItem(GITLAB_TOKEN_KEY, token.trim());
+        tokenSaved = true;
+      }
     }
 
     setIsRunning(false);
-  }, [token, names]);
+  }, [token, names, selectedGroupId]);
 
   return (
     <div className="p-4 lg:p-6">
