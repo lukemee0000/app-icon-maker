@@ -36,19 +36,17 @@ function renderIcon(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context not available");
 
-  // Fill background
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, size, size);
-
-  // Clip to circle for round shape
+  // Clip to circle for round shape (must happen BEFORE background fill
+  // so the corners remain transparent in the exported PNG)
   if (shape === "round") {
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
     ctx.clip();
-    // Re-fill after clip to ensure clean edges
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, size, size);
   }
+
+  // Fill background (clipped to circle if round)
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, size, size);
 
   // Calculate padded area
   const padding = size * (paddingPercent / 100);
