@@ -72,7 +72,7 @@ function ControlsPanel({
           <input
             id="square-padding-range"
             type="range"
-            min={0}
+            min={-50}
             max={50}
             value={squarePadding}
             onChange={(e) => onSquarePaddingChange(Number(e.target.value))}
@@ -80,7 +80,7 @@ function ControlsPanel({
           />
           <input
             type="number"
-            min={0}
+            min={-100}
             max={100}
             value={squarePadding}
             onChange={(e) => onSquarePaddingChange(Number(e.target.value))}
@@ -99,7 +99,7 @@ function ControlsPanel({
           <input
             id="round-padding-range"
             type="range"
-            min={0}
+            min={-50}
             max={50}
             value={roundPadding}
             onChange={(e) => onRoundPaddingChange(Number(e.target.value))}
@@ -107,7 +107,7 @@ function ControlsPanel({
           />
           <input
             type="number"
-            min={0}
+            min={-100}
             max={100}
             value={roundPadding}
             onChange={(e) => onRoundPaddingChange(Number(e.target.value))}
