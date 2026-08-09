@@ -5,6 +5,7 @@ import {
 	renderForegroundToBlob,
 	renderIconToBlob,
 	renderMonochromeToBlob,
+	type AnyImage,
 } from "./iconRenderer";
 
 const ADAPTIVE_ICON_LAUNCHER = `<?xml version="1.0" encoding="utf-8"?>
@@ -23,7 +24,7 @@ const ADAPTIVE_ICON_LAUNCHER_ROUND = `<?xml version="1.0" encoding="utf-8"?>
 
 export async function generateMipmapZip(
 	zip: JSZip,
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	squarePadding: number,
 	roundPadding: number,
 	bgColor: string,
@@ -86,7 +87,7 @@ export async function generateMipmapZip(
 }
 
 export async function exportZip(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	squarePadding: number,
 	roundPadding: number,
 	bgColor: string,

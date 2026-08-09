@@ -1,4 +1,5 @@
 export type IconShape = "square" | "round";
+export type AnyImage = HTMLImageElement | ImageBitmap;
 
 export interface IconDensity {
 	name: string;
@@ -23,17 +24,41 @@ export function adaptiveSize(legacySize: number): number {
 	return Math.round(legacySize * ADAPTIVE_SCALE);
 }
 
+function createCanvas(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
+	if (typeof OffscreenCanvas !== "undefined") {
+		return new OffscreenCanvas(width, height);
+	}
+	const canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = height;
+	return canvas;
+}
+
+async function canvasToBlob(canvas: HTMLCanvasElement | OffscreenCanvas, type = "image/png", quality?: number): Promise<Blob> {
+	if ("convertToBlob" in canvas) {
+		return await canvas.convertToBlob({ type, quality });
+	}
+	return new Promise((resolve, reject) => {
+		canvas.toBlob(
+			(blob) => {
+				if (blob) resolve(blob);
+				else reject(new Error("Failed to create blob from canvas"));
+			},
+			type,
+			quality,
+		);
+	});
+}
+
 function renderIcon(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	size: number,
 	paddingPercent: number,
 	bgColor: string,
 	shape: IconShape,
-): HTMLCanvasElement {
-	const canvas = document.createElement("canvas");
-	canvas.width = size;
-	canvas.height = size;
-	const ctx = canvas.getContext("2d");
+): HTMLCanvasElement | OffscreenCanvas {
+	const canvas = createCanvas(size, size);
+	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Clip to circle for round shape (must happen BEFORE background fill
@@ -53,7 +78,7 @@ function renderIcon(
 	const availableSize = size - padding * 2;
 
 	// Scale image to fit (contain) in the available area
-	const imgAspect = sourceImage.naturalWidth / sourceImage.naturalHeight;
+	const imgAspect = sourceImage.width / sourceImage.height;
 	let drawWidth: number;
 	let drawHeight: number;
 
@@ -75,15 +100,13 @@ function renderIcon(
 }
 
 function renderForeground(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	legacySize: number,
 	paddingPercent: number,
-): HTMLCanvasElement {
+): HTMLCanvasElement | OffscreenCanvas {
 	const size = adaptiveSize(legacySize);
-	const canvas = document.createElement("canvas");
-	canvas.width = size;
-	canvas.height = size;
-	const ctx = canvas.getContext("2d");
+	const canvas = createCanvas(size, size);
+	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Transparent background — only the source image
@@ -93,7 +116,7 @@ function renderForeground(
 	const visiblePadding = visibleSize * (paddingPercent / 100);
 	const availableSize = visibleSize - visiblePadding * 2;
 
-	const imgAspect = sourceImage.naturalWidth / sourceImage.naturalHeight;
+	const imgAspect = sourceImage.width / sourceImage.height;
 	let drawWidth: number;
 	let drawHeight: number;
 
@@ -116,12 +139,10 @@ function renderForeground(
 function renderBackground(
 	legacySize: number,
 	bgColor: string,
-): HTMLCanvasElement {
+): HTMLCanvasElement | OffscreenCanvas {
 	const size = adaptiveSize(legacySize);
-	const canvas = document.createElement("canvas");
-	canvas.width = size;
-	canvas.height = size;
-	const ctx = canvas.getContext("2d");
+	const canvas = createCanvas(size, size);
+	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	ctx.fillStyle = bgColor;
@@ -131,13 +152,13 @@ function renderBackground(
 }
 
 function renderMonochrome(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	legacySize: number,
 	paddingPercent: number,
-): HTMLCanvasElement {
+): HTMLCanvasElement | OffscreenCanvas {
 	// First render the foreground normally (already uses adaptive size internally)
 	const fgCanvas = renderForeground(sourceImage, legacySize, paddingPercent);
-	const ctx = fgCanvas.getContext("2d");
+	const ctx = fgCanvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Convert to grayscale while preserving alpha
@@ -156,28 +177,19 @@ function renderMonochrome(
 	return fgCanvas;
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
-	return new Promise((resolve, reject) => {
-		canvas.toBlob((blob) => {
-			if (blob) resolve(blob);
-			else reject(new Error("Failed to create blob from canvas"));
-		}, "image/png");
-	});
-}
-
 export function renderIconToDataURL(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	size: number,
 	paddingPercent: number,
 	bgColor: string,
 	shape: IconShape,
 ): string {
-	const canvas = renderIcon(sourceImage, size, paddingPercent, bgColor, shape);
+	const canvas = renderIcon(sourceImage, size, paddingPercent, bgColor, shape) as HTMLCanvasElement;
 	return canvas.toDataURL("image/png");
 }
 
 export async function renderIconToBlob(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	size: number,
 	paddingPercent: number,
 	bgColor: string,
@@ -188,7 +200,7 @@ export async function renderIconToBlob(
 }
 
 export async function renderForegroundToBlob(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	size: number,
 	paddingPercent: number,
 ): Promise<Blob> {
@@ -205,7 +217,7 @@ export async function renderBackgroundToBlob(
 }
 
 export async function renderMonochromeToBlob(
-	sourceImage: HTMLImageElement,
+	sourceImage: AnyImage,
 	size: number,
 	paddingPercent: number,
 ): Promise<Blob> {

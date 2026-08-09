@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import JSZip from "jszip";
 import { processBulkImage } from "../lib/bulkProcessing";
 
 export const Route = createFileRoute("/bulk-app-icon-store")({
@@ -13,6 +14,8 @@ interface Job {
 	url: string;
 	status: JobStatus;
 	message?: string;
+	zipBlob?: Blob;
+	domain?: string;
 }
 
 function BulkAppIconStore() {
@@ -55,20 +58,30 @@ function BulkAppIconStore() {
 		);
 
 		try {
-			await processBulkImage(job.url, (msg) => {
+			const { blob, domain } = await processBulkImage(job.url, (msg) => {
 				setJobs((prev) =>
 					prev.map((j) => (j.id === jobId ? { ...j, message: msg } : j)),
 				);
 			});
 			setJobs((prev) =>
 				prev.map((j) =>
-					j.id === jobId ? { ...j, status: "done", message: "Success" } : j,
+					j.id === jobId
+						? {
+								...j,
+								status: "done",
+								message: "Success",
+								zipBlob: blob,
+								domain,
+							}
+						: j,
 				),
 			);
 		} catch (err) {
 			setJobs((prev) =>
 				prev.map((j) =>
-					j.id === jobId ? { ...j, status: "error", message: String(err) } : j,
+					j.id === jobId
+						? { ...j, status: "error", message: String(err) }
+						: j,
 				),
 			);
 		}
@@ -76,13 +89,56 @@ function BulkAppIconStore() {
 
 	const handleProceed = async () => {
 		setIsGlobalProcessing(true);
-		// process sequentially to avoid blocking the browser with too many canvas operations
-		for (const job of jobs) {
-			if (job.status === "pending" || job.status === "error") {
-				await processJob(job.id);
+		
+		const promises = jobs
+			.filter(job => job.status === "pending" || job.status === "error")
+			.map(job => processJob(job.id));
+			
+		await Promise.all(promises);
+		
+		setIsGlobalProcessing(false);
+	};
+
+	const downloadIndividual = (job: Job) => {
+		if (!job.zipBlob || !job.domain) return;
+		const downloadUrl = URL.createObjectURL(job.zipBlob);
+		const a = document.createElement("a");
+		a.href = downloadUrl;
+		a.download = `${job.domain}.zip`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(downloadUrl);
+	};
+
+	const downloadAll = async () => {
+		const completedJobs = jobs.filter((j) => j.status === "done" && j.zipBlob);
+		if (completedJobs.length === 0) return;
+
+		if (completedJobs.length === 1) {
+			// Just download the single one normally
+			downloadIndividual(completedJobs[0]);
+			return;
+		}
+
+		// Merge all into a master zip
+		const masterZip = new JSZip();
+		for (const job of completedJobs) {
+			if (job.zipBlob && job.domain) {
+				// To avoid duplicate names, append job id if necessary
+				masterZip.file(`${job.domain}-${job.id}.zip`, job.zipBlob);
 			}
 		}
-		setIsGlobalProcessing(false);
+
+		const content = await masterZip.generateAsync({ type: "blob" });
+		const downloadUrl = URL.createObjectURL(content);
+		const a = document.createElement("a");
+		a.href = downloadUrl;
+		a.download = "bulk-app-icons.zip";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(downloadUrl);
 	};
 
 	return (
@@ -93,12 +149,13 @@ function BulkAppIconStore() {
 					<p className="text-sm opacity-70">
 						Paste image URLs (one per line). The system will fetch them, remove
 						the background, generate 512x512 webp/png and Android mipmaps, and
-						download a ZIP file per URL.
+						prepare a ZIP file per URL. Processing happens entirely in the
+						background!
 					</p>
 
 					<div className="form-control w-full mt-4">
 						<textarea
-							className="textarea textarea-bordered h-40"
+							className="textarea textarea-bordered w-full h-40"
 							placeholder="https://example.com/logo.png"
 							value={inputText}
 							onChange={handleTextChange}
@@ -127,8 +184,18 @@ function BulkAppIconStore() {
 			{jobs.length > 0 && (
 				<div className="card bg-base-200 shadow-sm">
 					<div className="card-body">
-						<h3 className="card-title text-sm">Parsed URLs</h3>
-						<div className="overflow-x-auto">
+						<div className="flex justify-between items-center">
+							<h3 className="card-title text-sm">Parsed URLs</h3>
+							{jobs.some((j) => j.status === "done") && (
+								<button
+									className="btn btn-sm btn-secondary"
+									onClick={downloadAll}
+								>
+									Download All Completed
+								</button>
+							)}
+						</div>
+						<div className="overflow-x-auto mt-4">
 							<table className="table">
 								<thead>
 									<tr>
@@ -162,17 +229,26 @@ function BulkAppIconStore() {
 												{job.message || "-"}
 											</td>
 											<td>
-												<button
-													className="btn btn-sm btn-outline"
-													onClick={() => processJob(job.id)}
-													disabled={job.status === "processing"}
-												>
-													{job.status === "processing" ? (
-														<span className="loading loading-spinner loading-xs"></span>
-													) : (
-														"Download"
-													)}
-												</button>
+												{job.status === "done" ? (
+													<button
+														className="btn btn-sm btn-outline btn-success"
+														onClick={() => downloadIndividual(job)}
+													>
+														Download
+													</button>
+												) : (
+													<button
+														className="btn btn-sm btn-outline"
+														onClick={() => processJob(job.id)}
+														disabled={job.status === "processing"}
+													>
+														{job.status === "processing" ? (
+															<span className="loading loading-spinner loading-xs"></span>
+														) : (
+															"Process"
+														)}
+													</button>
+												)}
 											</td>
 										</tr>
 									))}
