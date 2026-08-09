@@ -1,9 +1,9 @@
-import { Navigate, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: RouteComponent,
+	component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <Navigate to="/app-icon-maker" />;
+	return <Navigate to="/app-icon-maker" />;
 }
