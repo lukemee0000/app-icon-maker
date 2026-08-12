@@ -177,16 +177,6 @@ function renderMonochrome(
 	return fgCanvas;
 }
 
-export function renderIconToDataURL(
-	sourceImage: AnyImage,
-	size: number,
-	paddingPercent: number,
-	bgColor: string,
-	shape: IconShape,
-): string {
-	const canvas = renderIcon(sourceImage, size, paddingPercent, bgColor, shape) as HTMLCanvasElement;
-	return canvas.toDataURL("image/png");
-}
 
 export async function renderIconToBlob(
 	sourceImage: AnyImage,
