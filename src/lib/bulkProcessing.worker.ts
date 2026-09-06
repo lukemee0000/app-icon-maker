@@ -1,4 +1,4 @@
-import { removeBackground, type Config } from "@imgly/background-removal";
+import { type Config, removeBackground } from "@imgly/background-removal";
 import JSZip from "jszip";
 import { generateMipmapZip } from "./exportZip";
 
@@ -68,7 +68,23 @@ self.onmessage = async (e: MessageEvent) => {
 		}
 
 		reportProgress("Removing background...");
-		const bgRemovalConfig: Config = {};
+		let modelReadyNotified = false;
+		const bgRemovalConfig: Config = {
+			progress: (key: string, current: number, total: number) => {
+				const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+				let stage = key;
+				if (key.startsWith("fetch:")) {
+					stage = `Downloading model (${key.replace("fetch:/", "")})`;
+				} else if (key.startsWith("compute:")) {
+					stage = `AI processing (${key.replace("compute:", "")})`;
+					if (!modelReadyNotified) {
+						modelReadyNotified = true;
+						self.postMessage({ type: "model-ready", jobId });
+					}
+				}
+				reportProgress(`${stage}: ${percent}%`);
+			},
+		};
 		const webpBlob = await removeBackground(blob, bgRemovalConfig);
 
 		reportProgress("Generating logo.webp...");

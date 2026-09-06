@@ -1,11 +1,11 @@
 import JSZip from "jszip";
 import {
+	type AnyImage,
 	DENSITIES,
 	renderBackgroundToBlob,
 	renderForegroundToBlob,
 	renderIconToBlob,
 	renderMonochromeToBlob,
-	type AnyImage,
 } from "./iconRenderer";
 
 const ADAPTIVE_ICON_LAUNCHER = `<?xml version="1.0" encoding="utf-8"?>

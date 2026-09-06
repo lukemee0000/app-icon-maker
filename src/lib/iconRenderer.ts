@@ -24,7 +24,10 @@ export function adaptiveSize(legacySize: number): number {
 	return Math.round(legacySize * ADAPTIVE_SCALE);
 }
 
-function createCanvas(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
+function createCanvas(
+	width: number,
+	height: number,
+): HTMLCanvasElement | OffscreenCanvas {
 	if (typeof OffscreenCanvas !== "undefined") {
 		return new OffscreenCanvas(width, height);
 	}
@@ -34,7 +37,11 @@ function createCanvas(width: number, height: number): HTMLCanvasElement | Offscr
 	return canvas;
 }
 
-async function canvasToBlob(canvas: HTMLCanvasElement | OffscreenCanvas, type = "image/png", quality?: number): Promise<Blob> {
+async function canvasToBlob(
+	canvas: HTMLCanvasElement | OffscreenCanvas,
+	type = "image/png",
+	quality?: number,
+): Promise<Blob> {
 	if ("convertToBlob" in canvas) {
 		return await canvas.convertToBlob({ type, quality });
 	}
@@ -58,7 +65,9 @@ function renderIcon(
 	shape: IconShape,
 ): HTMLCanvasElement | OffscreenCanvas {
 	const canvas = createCanvas(size, size);
-	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+	const ctx = canvas.getContext("2d") as
+		| CanvasRenderingContext2D
+		| OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Clip to circle for round shape (must happen BEFORE background fill
@@ -106,7 +115,9 @@ function renderForeground(
 ): HTMLCanvasElement | OffscreenCanvas {
 	const size = adaptiveSize(legacySize);
 	const canvas = createCanvas(size, size);
-	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+	const ctx = canvas.getContext("2d") as
+		| CanvasRenderingContext2D
+		| OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Transparent background — only the source image
@@ -142,7 +153,9 @@ function renderBackground(
 ): HTMLCanvasElement | OffscreenCanvas {
 	const size = adaptiveSize(legacySize);
 	const canvas = createCanvas(size, size);
-	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+	const ctx = canvas.getContext("2d") as
+		| CanvasRenderingContext2D
+		| OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	ctx.fillStyle = bgColor;
@@ -158,7 +171,9 @@ function renderMonochrome(
 ): HTMLCanvasElement | OffscreenCanvas {
 	// First render the foreground normally (already uses adaptive size internally)
 	const fgCanvas = renderForeground(sourceImage, legacySize, paddingPercent);
-	const ctx = fgCanvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+	const ctx = fgCanvas.getContext("2d") as
+		| CanvasRenderingContext2D
+		| OffscreenCanvasRenderingContext2D;
 	if (!ctx) throw new Error("Canvas 2D context not available");
 
 	// Convert to grayscale while preserving alpha
@@ -184,7 +199,13 @@ export function renderIconToDataURL(
 	bgColor: string,
 	shape: IconShape,
 ): string {
-	const canvas = renderIcon(sourceImage, size, paddingPercent, bgColor, shape) as HTMLCanvasElement;
+	const canvas = renderIcon(
+		sourceImage,
+		size,
+		paddingPercent,
+		bgColor,
+		shape,
+	) as HTMLCanvasElement;
 	return canvas.toDataURL("image/png");
 }
 
