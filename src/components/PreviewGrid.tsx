@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import type { IconShape } from "../lib/iconRenderer";
-import { DENSITIES, renderIconToDataURL } from "../lib/iconRenderer";
+import { useEffect, useState } from "react";
+import type { IconShape, IconDensity } from "../lib/iconRenderer";
+import { DENSITIES, renderIconToBlob } from "../lib/iconRenderer";
 
 interface PreviewGridProps {
 	sourceImage: HTMLImageElement | null;
@@ -52,26 +52,59 @@ function PreviewGrid({
 	roundPadding,
 	bgColor,
 }: PreviewGridProps) {
-	const previews = useMemo(() => {
-		if (!sourceImage) return null;
+	const [previews, setPreviews] = useState<Array<{ density: IconDensity, square: string, round: string }> | null>(null);
 
-		return DENSITIES.map((density) => ({
-			density,
-			square: renderIconToDataURL(
-				sourceImage,
-				density.size,
-				squarePadding,
-				bgColor,
-				"square",
-			),
-			round: renderIconToDataURL(
-				sourceImage,
-				density.size,
-				roundPadding,
-				bgColor,
-				"round",
-			),
-		}));
+	useEffect(() => {
+		if (!sourceImage) {
+			setPreviews(null);
+			return;
+		}
+
+		let isActive = true;
+		const objectUrls: string[] = [];
+
+		const generatePreviews = async () => {
+			const newPreviews = await Promise.all(
+				DENSITIES.map(async (density) => {
+					const squareBlob = await renderIconToBlob(
+						sourceImage,
+						density.size,
+						squarePadding,
+						bgColor,
+						"square",
+					);
+					const roundBlob = await renderIconToBlob(
+						sourceImage,
+						density.size,
+						roundPadding,
+						bgColor,
+						"round",
+					);
+					
+					const squareUrl = URL.createObjectURL(squareBlob);
+					const roundUrl = URL.createObjectURL(roundBlob);
+					
+					objectUrls.push(squareUrl, roundUrl);
+					
+					return {
+						density,
+						square: squareUrl,
+						round: roundUrl,
+					};
+				})
+			);
+
+			if (isActive) {
+				setPreviews(newPreviews);
+			}
+		};
+
+		generatePreviews();
+
+		return () => {
+			isActive = false;
+			objectUrls.forEach((url) => URL.revokeObjectURL(url));
+		};
 	}, [sourceImage, squarePadding, roundPadding, bgColor]);
 
 	if (!previews) {
