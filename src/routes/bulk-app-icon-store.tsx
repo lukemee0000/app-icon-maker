@@ -123,7 +123,7 @@ function BulkAppIconStore() {
 		// Start first job. When its worker signals model-ready (model loaded into
 		// HTTP cache — either freshly downloaded or instant cache hit), launch
 		// remaining jobs in parallel immediately without waiting for first to finish.
-		let remainingPromise: Promise<undefined[]> | null = null;
+		let remainingPromise: Promise<unknown> | null = null;
 
 		const firstPromise = processJob(firstJob.id, firstJob.url, () => {
 			// model-ready: model is now in browser HTTP cache
