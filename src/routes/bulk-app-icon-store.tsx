@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import JSZip from "jszip";
+import { useState } from "react";
 import { processBulkImage } from "../lib/bulkProcessing";
 
 export const Route = createFileRoute("/bulk-app-icon-store")({
@@ -79,9 +79,7 @@ function BulkAppIconStore() {
 		} catch (err) {
 			setJobs((prev) =>
 				prev.map((j) =>
-					j.id === jobId
-						? { ...j, status: "error", message: String(err) }
-						: j,
+					j.id === jobId ? { ...j, status: "error", message: String(err) } : j,
 				),
 			);
 		}
@@ -89,13 +87,13 @@ function BulkAppIconStore() {
 
 	const handleProceed = async () => {
 		setIsGlobalProcessing(true);
-		
+
 		const promises = jobs
-			.filter(job => job.status === "pending" || job.status === "error")
-			.map(job => processJob(job.id));
-			
+			.filter((job) => job.status === "pending" || job.status === "error")
+			.map((job) => processJob(job.id));
+
 		await Promise.all(promises);
-		
+
 		setIsGlobalProcessing(false);
 	};
 

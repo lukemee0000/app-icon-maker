@@ -57,6 +57,11 @@ function RootComponent() {
 								Bulk App Icon Store
 							</Link>
 						</li>
+						<li>
+							<Link to="/2fa" activeProps={{ className: "menu-active" }}>
+								2FA
+							</Link>
+						</li>
 					</ul>
 				</div>
 				<div className="flex-none flex items-center gap-2">

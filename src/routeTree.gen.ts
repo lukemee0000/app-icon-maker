@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as BulkGitlabRouteImport } from './routes/bulk-gitlab'
 import { Route as BulkAppIconStoreRouteImport } from './routes/bulk-app-icon-store'
 import { Route as AppIconMakerRouteImport } from './routes/app-icon-maker'
+import { Route as R2faRouteImport } from './routes/2fa'
 import { Route as IndexRouteImport } from './routes/index'
 
 const BulkGitlabRoute = BulkGitlabRouteImport.update({
@@ -29,6 +30,11 @@ const AppIconMakerRoute = AppIconMakerRouteImport.update({
   path: '/app-icon-maker',
   getParentRoute: () => rootRouteImport,
 } as any)
+const R2faRoute = R2faRouteImport.update({
+  id: '/2fa',
+  path: '/2fa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/app-icon-maker': typeof AppIconMakerRoute
   '/bulk-app-icon-store': typeof BulkAppIconStoreRoute
   '/bulk-gitlab': typeof BulkGitlabRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/app-icon-maker': typeof AppIconMakerRoute
   '/bulk-app-icon-store': typeof BulkAppIconStoreRoute
   '/bulk-gitlab': typeof BulkGitlabRoute
@@ -50,18 +58,25 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/app-icon-maker': typeof AppIconMakerRoute
   '/bulk-app-icon-store': typeof BulkAppIconStoreRoute
   '/bulk-gitlab': typeof BulkGitlabRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app-icon-maker' | '/bulk-app-icon-store' | '/bulk-gitlab'
+  fullPaths:
+    | '/'
+    | '/2fa'
+    | '/app-icon-maker'
+    | '/bulk-app-icon-store'
+    | '/bulk-gitlab'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app-icon-maker' | '/bulk-app-icon-store' | '/bulk-gitlab'
+  to: '/' | '/2fa' | '/app-icon-maker' | '/bulk-app-icon-store' | '/bulk-gitlab'
   id:
     | '__root__'
     | '/'
+    | '/2fa'
     | '/app-icon-maker'
     | '/bulk-app-icon-store'
     | '/bulk-gitlab'
@@ -69,6 +84,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R2faRoute: typeof R2faRoute
   AppIconMakerRoute: typeof AppIconMakerRoute
   BulkAppIconStoreRoute: typeof BulkAppIconStoreRoute
   BulkGitlabRoute: typeof BulkGitlabRoute
@@ -97,6 +113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIconMakerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/2fa': {
+      id: '/2fa'
+      path: '/2fa'
+      fullPath: '/2fa'
+      preLoaderRoute: typeof R2faRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -109,6 +132,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R2faRoute: R2faRoute,
   AppIconMakerRoute: AppIconMakerRoute,
   BulkAppIconStoreRoute: BulkAppIconStoreRoute,
   BulkGitlabRoute: BulkGitlabRoute,

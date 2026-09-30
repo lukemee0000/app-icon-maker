@@ -30,8 +30,7 @@ function corsProxyPlugin(): Plugin {
 						return;
 					}
 					const contentType =
-						response.headers.get("content-type") ||
-						"application/octet-stream";
+						response.headers.get("content-type") || "application/octet-stream";
 					res.setHeader("Content-Type", contentType);
 					res.setHeader("Access-Control-Allow-Origin", "*");
 					const arrayBuffer = await response.arrayBuffer();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { IconShape, IconDensity } from "../lib/iconRenderer";
+import type { IconDensity, IconShape } from "../lib/iconRenderer";
 import { DENSITIES, renderIconToBlob } from "../lib/iconRenderer";
 
 interface PreviewGridProps {
@@ -52,7 +52,11 @@ function PreviewGrid({
 	roundPadding,
 	bgColor,
 }: PreviewGridProps) {
-	const [previews, setPreviews] = useState<Array<{ density: IconDensity, square: string, round: string }> | null>(null);
+	const [previews, setPreviews] = useState<Array<{
+		density: IconDensity;
+		square: string;
+		round: string;
+	}> | null>(null);
 
 	useEffect(() => {
 		if (!sourceImage) {
@@ -80,18 +84,18 @@ function PreviewGrid({
 						bgColor,
 						"round",
 					);
-					
+
 					const squareUrl = URL.createObjectURL(squareBlob);
 					const roundUrl = URL.createObjectURL(roundBlob);
-					
+
 					objectUrls.push(squareUrl, roundUrl);
-					
+
 					return {
 						density,
 						square: squareUrl,
 						round: roundUrl,
 					};
-				})
+				}),
 			);
 
 			if (isActive) {

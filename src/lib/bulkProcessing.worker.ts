@@ -1,4 +1,4 @@
-import { removeBackground, type Config } from "@imgly/background-removal";
+import { type Config, removeBackground } from "@imgly/background-removal";
 import JSZip from "jszip";
 import { generateMipmapZip } from "./exportZip";
 
