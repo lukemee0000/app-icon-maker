@@ -45,9 +45,13 @@ function BulkAppIconStore() {
 		});
 	};
 
-	const processJob = async (jobId: string) => {
-		const job = jobs.find((j) => j.id === jobId);
-		if (!job) return;
+	const processJob = async (
+		jobId: string,
+		urlOverride?: string,
+		onModelReady?: () => void,
+	) => {
+		const url = urlOverride ?? jobs.find((j) => j.id === jobId)?.url;
+		if (!url) return;
 
 		setJobs((prev) =>
 			prev.map((j) =>
@@ -58,10 +62,13 @@ function BulkAppIconStore() {
 		);
 
 		try {
-			const { blob, domain } = await processBulkImage(job.url, (msg) => {
-				setJobs((prev) =>
-					prev.map((j) => (j.id === jobId ? { ...j, message: msg } : j)),
-				);
+			const { blob, domain } = await processBulkImage(url, {
+				onProgress: (msg) => {
+					setJobs((prev) =>
+						prev.map((j) => (j.id === jobId ? { ...j, message: msg } : j)),
+					);
+				},
+				onModelReady,
 			});
 			setJobs((prev) =>
 				prev.map((j) =>
@@ -88,11 +95,52 @@ function BulkAppIconStore() {
 	const handleProceed = async () => {
 		setIsGlobalProcessing(true);
 
-		const promises = jobs
-			.filter((job) => job.status === "pending" || job.status === "error")
-			.map((job) => processJob(job.id));
+		const pendingJobs = jobs.filter(
+			(job) => job.status === "pending" || job.status === "error",
+		);
+		if (pendingJobs.length === 0) {
+			setIsGlobalProcessing(false);
+			return;
+		}
 
-		await Promise.all(promises);
+		if (pendingJobs.length === 1) {
+			await processJob(pendingJobs[0].id, pendingJobs[0].url);
+			setIsGlobalProcessing(false);
+			return;
+		}
+
+		const [firstJob, ...remainingJobs] = pendingJobs;
+
+		// Show waiting status on remaining jobs
+		setJobs((prev) =>
+			prev.map((j) =>
+				remainingJobs.some((rj) => rj.id === j.id)
+					? { ...j, status: "pending", message: "Waiting for AI model..." }
+					: j,
+			),
+		);
+
+		// Start first job. When its worker signals model-ready (model loaded into
+		// HTTP cache — either freshly downloaded or instant cache hit), launch
+		// remaining jobs in parallel immediately without waiting for first to finish.
+		let remainingPromise: Promise<unknown> | null = null;
+
+		const firstPromise = processJob(firstJob.id, firstJob.url, () => {
+			// model-ready: model is now in browser HTTP cache
+			remainingPromise = Promise.all(
+				remainingJobs.map((rj) => processJob(rj.id, rj.url)),
+			);
+		});
+
+		await firstPromise;
+
+		// Wait for remaining jobs (already started via model-ready callback)
+		if (remainingPromise) {
+			await remainingPromise;
+		} else {
+			// model-ready never fired (e.g. first job errored before model loaded)
+			await Promise.all(remainingJobs.map((rj) => processJob(rj.id, rj.url)));
+		}
 
 		setIsGlobalProcessing(false);
 	};
@@ -162,6 +210,7 @@ function BulkAppIconStore() {
 
 					<div className="card-actions justify-end mt-4">
 						<button
+							type="button"
 							className="btn btn-primary"
 							onClick={handleProceed}
 							disabled={isGlobalProcessing || jobs.length === 0}
@@ -186,6 +235,7 @@ function BulkAppIconStore() {
 							<h3 className="card-title text-sm">Parsed URLs</h3>
 							{jobs.some((j) => j.status === "done") && (
 								<button
+									type="button"
 									className="btn btn-sm btn-secondary"
 									onClick={downloadAll}
 								>
@@ -229,6 +279,7 @@ function BulkAppIconStore() {
 											<td>
 												{job.status === "done" ? (
 													<button
+														type="button"
 														className="btn btn-sm btn-outline btn-success"
 														onClick={() => downloadIndividual(job)}
 													>
@@ -236,9 +287,12 @@ function BulkAppIconStore() {
 													</button>
 												) : (
 													<button
+														type="button"
 														className="btn btn-sm btn-outline"
-														onClick={() => processJob(job.id)}
-														disabled={job.status === "processing"}
+														onClick={() => processJob(job.id, job.url)}
+														disabled={
+															job.status === "processing" || isGlobalProcessing
+														}
 													>
 														{job.status === "processing" ? (
 															<span className="loading loading-spinner loading-xs"></span>
