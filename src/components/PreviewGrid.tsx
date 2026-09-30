@@ -107,7 +107,9 @@ function PreviewGrid({
 
 		return () => {
 			isActive = false;
-			objectUrls.forEach((url) => URL.revokeObjectURL(url));
+			objectUrls.forEach((url) => {
+				URL.revokeObjectURL(url);
+			});
 		};
 	}, [sourceImage, squarePadding, roundPadding, bgColor]);
 

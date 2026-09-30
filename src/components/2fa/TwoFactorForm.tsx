@@ -7,10 +7,14 @@ import {
 } from "../../lib/totp";
 
 interface TwoFactorFormProps {
+	existingEntries: TwoFactorEntry[];
 	onAddEntry: (entry: TwoFactorEntry) => void;
 }
 
-export function TwoFactorForm({ onAddEntry }: TwoFactorFormProps) {
+export function TwoFactorForm({
+	existingEntries,
+	onAddEntry,
+}: TwoFactorFormProps) {
 	const [name, setName] = useState("");
 	const [secretInput, setSecretInput] = useState("");
 	const [showSecret, setShowSecret] = useState(false);
@@ -44,6 +48,12 @@ export function TwoFactorForm({ onAddEntry }: TwoFactorFormProps) {
 			setError(
 				"Invalid 2FA secret key. Please ensure it is a valid Base32 key (A-Z, 2-7) or otpauth:// URI.",
 			);
+			return;
+		}
+
+		const existing2faKeys = new Set(existingEntries.map((e) => e.secret));
+		if (existing2faKeys.has(secret)) {
+			setError("An account with this 2FA secret key already exists.");
 			return;
 		}
 

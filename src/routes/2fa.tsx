@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { TwoFactorCountdown } from "../components/2fa/TwoFactorCountdown";
 import { TwoFactorForm } from "../components/2fa/TwoFactorForm";
+import { TwoFactorImport } from "../components/2fa/TwoFactorImport";
 import { TwoFactorList } from "../components/2fa/TwoFactorList";
 import {
 	getSecondsRemaining,
@@ -33,7 +34,29 @@ function TwoFactorRoute() {
 
 	const handleAddEntry = useCallback((newEntry: TwoFactorEntry) => {
 		setEntries((prev) => {
+			const existingKeys = new Set(prev.map((item) => item.secret));
+
+			if (existingKeys.has(newEntry.secret)) {
+				return prev;
+			}
+
 			const next = [newEntry, ...prev];
+			saveStoredEntries(next);
+			return next;
+		});
+	}, []);
+
+	const handleImportEntries = useCallback((newEntries: TwoFactorEntry[]) => {
+		setEntries((prev) => {
+			const existingKeys = new Set(prev.map((item) => item.secret));
+
+			const uniqueNew = newEntries.filter(
+				(item) => !existingKeys.has(item.secret),
+			);
+
+			if (uniqueNew.length === 0) return prev;
+			
+			const next = [...prev, ...uniqueNew];
 			saveStoredEntries(next);
 			return next;
 		});
@@ -75,9 +98,16 @@ function TwoFactorRoute() {
 
 				{/* Main Content Layout */}
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-					{/* Left Column: Add Entry Form */}
-					<div className="lg:col-span-5 xl:col-span-4 sticky top-20">
-						<TwoFactorForm onAddEntry={handleAddEntry} />
+					{/* Left Column: Add Entry Form & Import */}
+					<div className="lg:col-span-5 xl:col-span-4 sticky top-20 space-y-4">
+						<TwoFactorForm
+							existingEntries={entries}
+							onAddEntry={handleAddEntry}
+						/>
+						<TwoFactorImport
+							existingEntries={entries}
+							onImportEntries={handleImportEntries}
+						/>
 					</div>
 
 					{/* Right Column: Entries List */}

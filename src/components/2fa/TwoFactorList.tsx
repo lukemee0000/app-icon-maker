@@ -44,18 +44,18 @@ export function TwoFactorList({
 
 	return (
 		<div className="space-y-4">
-			{/* Header bar with count and search */}
+			{/* Header bar with search */}
 			{entries.length > 3 && (
-				<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-					<div className="relative w-full sm:w-64">
+				<div className="w-full">
+					<div className="relative w-full">
 						<input
 							type="text"
 							placeholder="Search accounts..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="input input-sm input-bordered w-full pl-8 bg-base-100"
+							className="input input-sm sm:input-md input-bordered w-full pl-9 bg-base-100"
 						/>
-						<Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/40" />
+						<Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
 					</div>
 				</div>
 			)}
