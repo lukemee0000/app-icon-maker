@@ -89,17 +89,15 @@ export function TwoFactorForm({
 				)}
 
 				<form onSubmit={handleSubmit} className="space-y-4 mt-2">
-					<div className="form-control">
-						<label htmlFor="2fa-name" className="label py-1">
-							<span className="label-text font-medium text-xs">
-								Account Name
-							</span>
-						</label>
+					<fieldset className="fieldset">
+						<legend className="fieldset-legend font-medium text-xs">
+							Account Name
+						</legend>
 						<input
 							id="2fa-name"
 							type="text"
 							placeholder="e.g. GitHub, Google, AWS"
-							className="input input-bordered input-sm sm:input-md w-full bg-base-100"
+							className="input input-bordered w-full text-base sm:text-sm bg-base-100 min-h-10.5 sm:min-h-0"
 							value={name}
 							onChange={(e) => {
 								setName(e.target.value);
@@ -108,23 +106,18 @@ export function TwoFactorForm({
 							maxLength={60}
 							required
 						/>
-					</div>
+					</fieldset>
 
-					<div className="form-control">
-						<label
-							htmlFor="2fa-secret"
-							className="label py-1 flex justify-between items-center"
-						>
-							<span className="label-text font-medium text-xs">
-								2FA Secret Key
-							</span>
-						</label>
+					<fieldset className="fieldset">
+						<legend className="fieldset-legend font-medium text-xs">
+							2FA Secret Key
+						</legend>
 						<div className="relative">
 							<input
 								id="2fa-secret"
 								type={showSecret ? "text" : "password"}
 								placeholder="e.g. JBSWY3DPEHPK3PXP or otpauth://..."
-								className="input input-bordered input-sm sm:input-md w-full pr-10 font-mono text-xs sm:text-sm bg-base-100"
+								className="input input-bordered w-full pr-12 font-mono text-base sm:text-sm bg-base-100 min-h-10.5 sm:min-h-0"
 								value={secretInput}
 								onChange={(e) => handleSecretChange(e.target.value)}
 								autoComplete="off"
@@ -134,7 +127,7 @@ export function TwoFactorForm({
 							<button
 								type="button"
 								onClick={() => setShowSecret(!showSecret)}
-								className="absolute right-2.5 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors p-1"
+								className="absolute right-1 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors p-2 min-h-10 min-w-10 flex items-center justify-center"
 								title={showSecret ? "Hide secret" : "Show secret"}
 								aria-label={showSecret ? "Hide secret" : "Show secret"}
 							>
@@ -145,17 +138,15 @@ export function TwoFactorForm({
 								)}
 							</button>
 						</div>
-						<div className="label pt-2">
-							<span className="label-text-alt text-xs text-base-content/50">
-								Supports Base32 strings and otpauth:// URI scheme
-							</span>
-						</div>
-					</div>
+						<span className="fieldset-label text-xs text-base-content/50">
+							Supports Base32 strings and otpauth:// URI scheme
+						</span>
+					</fieldset>
 
 					<div className="pt-2">
 						<button
 							type="submit"
-							className="btn btn-primary btn-sm sm:btn-md w-full gap-2 shadow-sm"
+							className="btn btn-primary btn-md w-full gap-2 shadow-sm min-h-11"
 						>
 							<Plus className="w-4 h-4" />
 							<span>Add Account</span>

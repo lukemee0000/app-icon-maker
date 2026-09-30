@@ -55,7 +55,7 @@ function TwoFactorRoute() {
 			);
 
 			if (uniqueNew.length === 0) return prev;
-			
+
 			const next = [...prev, ...uniqueNew];
 			saveStoredEntries(next);
 			return next;
@@ -81,25 +81,25 @@ function TwoFactorRoute() {
 	}, []);
 
 	return (
-		<div className="p-4 lg:p-6 min-h-[calc(100vh-4rem)]">
-			<div className="max-w-6xl mx-auto space-y-6">
+		<div className="p-3 sm:p-4 lg:p-6 min-h-[calc(100vh-4rem)]">
+			<div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
 				{/* Page Header */}
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-base-200/50 p-4 sm:p-6 rounded-2xl border border-base-content/10">
-					<div className="flex items-center gap-3">
-						<h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+				<div className="flex items-center justify-between gap-3 bg-base-200/60 p-3.5 sm:p-5 rounded-2xl border border-base-content/10">
+					<div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+						<h1 className="text-lg sm:text-2xl font-bold tracking-tight">
 							2FA Authenticator
 						</h1>
 					</div>
 
-					<div className="flex items-center gap-2 self-start sm:self-auto">
+					<div className="flex items-center gap-2 shrink-0">
 						<TwoFactorCountdown secondsRemaining={secondsRemaining} />
 					</div>
 				</div>
 
-				{/* Main Content Layout */}
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-					{/* Left Column: Add Entry Form & Import */}
-					<div className="lg:col-span-5 xl:col-span-4 sticky top-20 space-y-4">
+				{/* Main Content Layout - Pure CSS Responsive Grid */}
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+					{/* Forms Column */}
+					<div className="order-2 lg:order-1 lg:col-span-5 xl:col-span-4 lg:sticky lg:top-20 space-y-4">
 						<TwoFactorForm
 							existingEntries={entries}
 							onAddEntry={handleAddEntry}
@@ -110,8 +110,8 @@ function TwoFactorRoute() {
 						/>
 					</div>
 
-					{/* Right Column: Entries List */}
-					<div className="lg:col-span-7 xl:col-span-8">
+					{/* Accounts List Column */}
+					<div className="order-1 lg:order-2 lg:col-span-7 xl:col-span-8">
 						<TwoFactorList
 							entries={entries}
 							onDeleteEntry={handleDeleteEntry}

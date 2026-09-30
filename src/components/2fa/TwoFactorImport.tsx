@@ -196,7 +196,7 @@ export function TwoFactorImport({
 						</legend>
 						<textarea
 							id="2fa-json-import"
-							className="textarea textarea-bordered w-full font-mono text-xs bg-base-100 h-28 resize-y placeholder:text-base-content/40 leading-relaxed"
+							className="textarea textarea-bordered w-full font-mono text-base sm:text-xs bg-base-100 h-28 resize-y placeholder:text-base-content/40 leading-relaxed"
 							placeholder={`[\n  {\n    "name": "GitHub",\n    "secret": "JBSWY3DPEHPK3PXP"\n  }\n]`}
 							value={jsonInput}
 							onChange={(e) => {
@@ -213,7 +213,7 @@ export function TwoFactorImport({
 						<button
 							type="submit"
 							disabled={!jsonInput.trim()}
-							className="btn btn-primary btn-sm sm:btn-md w-full gap-2 shadow-sm"
+							className="btn btn-primary btn-md w-full gap-2 shadow-sm min-h-11"
 						>
 							<Upload className="w-4 h-4" />
 							<span>Import</span>
