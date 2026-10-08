@@ -62,6 +62,11 @@ function RootComponent() {
 								2FA
 							</Link>
 						</li>
+						<li>
+							<Link to="/bulk-2fa" activeProps={{ className: "menu-active" }}>
+								Bulk 2FA
+							</Link>
+						</li>
 					</ul>
 				</div>
 				<div className="flex-none flex items-center gap-2">

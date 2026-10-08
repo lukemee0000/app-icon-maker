@@ -59,6 +59,7 @@ function ImageDropZone({ onImageLoad }: ImageDropZoneProps) {
 	);
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: dropzone wraps hidden input and upload area
 		<div
 			role="button"
 			tabIndex={0}

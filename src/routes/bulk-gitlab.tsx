@@ -6,6 +6,7 @@ const GITLAB_TOKEN_KEY = "gitlab_token";
 const GITLAB_API = "https://gitlab.com/api/v4";
 
 interface ProjectResult {
+	id: string;
 	name: string;
 	status: "pending" | "creating" | "success" | "error";
 	message?: string;
@@ -55,7 +56,10 @@ async function createGitlabProject(
 	namespaceId?: string,
 ): Promise<{ ok: boolean; duplicate: boolean; message: string; url?: string }> {
 	try {
-		const bodyData: any = { name, path: name };
+		const bodyData: { name: string; path: string; namespace_id?: number } = {
+			name,
+			path: name,
+		};
 		if (namespaceId) {
 			bodyData.namespace_id = Number.parseInt(namespaceId, 10);
 		}
@@ -150,7 +154,8 @@ function RouteComponent() {
 			.map((l) => l.trim())
 			.filter(Boolean);
 
-		const initialResults: ProjectResult[] = lines.map((line) => ({
+		const initialResults: ProjectResult[] = lines.map((line, idx) => ({
+			id: `${line}-${idx}`,
 			name: buildProjectName(line).name || line,
 			status: "pending",
 		}));
@@ -164,6 +169,7 @@ function RouteComponent() {
 				setResults((prev) => {
 					const next = [...prev];
 					next[i] = {
+						...next[i],
 						name: lines[i],
 						status: "error",
 						message: "Invalid name",
@@ -208,7 +214,7 @@ function RouteComponent() {
 			setResults((prev) => {
 				const next = [...prev];
 				next[i] = {
-					name: next[i].name,
+					...next[i],
 					status: result.ok ? "success" : "error",
 					message: result.message,
 					url: result.url,
@@ -332,7 +338,7 @@ function RouteComponent() {
 										</thead>
 										<tbody>
 											{results.map((r, idx) => (
-												<tr key={`${r.name}-${idx}`}>
+												<tr key={r.id}>
 													<td>{idx + 1}</td>
 													<td className="font-mono text-sm">{r.name}</td>
 													<td>
